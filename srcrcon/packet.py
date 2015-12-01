@@ -26,13 +26,12 @@ class PacketMeta(type):
 class Packet(metaclass=PacketMeta):
     """
     """
-    _size_format = '<i'
     _pack_format = '<iii{body_len}sxx'
     id = None
     type = None
-    body = None
+    body = ''
 
-    def __new__(cls, payload=None, auth_response=False):
+    def __new__(cls, payload=None):
         return super(Packet, cls).__new__(cls)
 
     @property
@@ -44,6 +43,8 @@ class Packet(metaclass=PacketMeta):
         return struct.calcsize(self._pack_format.format(body_len=self.body_len)) - 4
 
     def __bytes__(self):
+        if self.type is None: 
+            raise AttributeError('Missing `type`')
         return struct.pack(
             self._pack_format.format(body_len=self.body_len),
             self.size,
