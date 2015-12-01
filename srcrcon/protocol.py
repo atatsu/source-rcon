@@ -76,7 +76,7 @@ class Packet(metaclass=PacketMeta):
         )
 
 
-class ServerDataAuth(Packet):
+class Auth(Packet):
     """
     """
     type = 3
@@ -85,21 +85,21 @@ class ServerDataAuth(Packet):
         self.body = password
 
 
-class ServerDataAuthResponse(Packet):
+class AuthResponse(Packet):
     """
     """
     type = 2
-_registry[ServerDataAuthResponse.type] = ServerDataAuthResponse
+_registry[AuthResponse.type] = AuthResponse
 
 
-class ServerDataExecCommand(Packet):
+class ExecCommand(Packet):
     """
     """
     type = 2
 
 
-class ServerDataResponseValue(Packet):
+class ResponseValue(Packet):
     """
     """
     type = 0
-_registry[ServerDataResponseValue.type] = ServerDataResponseValue
+_registry[ResponseValue.type] = ResponseValue

@@ -1,1 +1,1 @@
-from . import packet
+from . import protocol

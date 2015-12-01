@@ -10,7 +10,7 @@ class PacketTests(unittest.TestCase):
     @mock.patch('random.randint')
     def setUp(self, _randint):
         _randint.return_value = 5
-        self.packet = srcrcon.packet.Packet()
+        self.packet = srcrcon.protocol.Packet()
         self.packet.type = 0
         self.packet.body = 'herro'
 
@@ -36,7 +36,7 @@ class PacketTests(unittest.TestCase):
 class PacketErrorTests(unittest.TestCase):
 
     def test_no_type(self):
-        p = srcrcon.packet.Packet()
+        p = srcrcon.protocol.Packet()
         with self.assertRaises(AttributeError) as cm:
             bytes(p)
         self.assertEquals(
@@ -44,35 +44,35 @@ class PacketErrorTests(unittest.TestCase):
             str(cm.exception)
         )
 
-class ServerDataAuthResponseTests(unittest.TestCase):
+class AuthResponseTests(unittest.TestCase):
 
     @mock.patch('random.randint')
     def setUp(self, _randint):
-        p = srcrcon.packet.ServerDataAuth(1234)
+        p = srcrcon.protocol.Auth(1234)
         _randint.return_value = 5
 
         self.body = bytes(chr(0x00), 'ascii')
         payload = struct.pack(
-            srcrcon.packet.Packet._pack_format.format(body_len=len(self.body)),
+            srcrcon.protocol.Packet._pack_format.format(body_len=len(self.body)),
             struct.calcsize(
-                srcrcon.packet.Packet._pack_format.format(body_len=len(self.body))
+                srcrcon.protocol.Packet._pack_format.format(body_len=len(self.body))
             ) - 4,
             25, # id
-            srcrcon.packet.ServerDataAuthResponse.type,
+            srcrcon.protocol.AuthResponse.type,
             self.body
         )
-        self.packet = srcrcon.packet.Packet(raw=payload[4:])
+        self.packet = srcrcon.protocol.Packet(raw=payload[4:])
 
     def test_correct_type(self):
         self.assertTrue(
-            isinstance(self.packet, srcrcon.packet.ServerDataAuthResponse),
-            '{} != ServerDataAuthResponse'.format(type(self.packet))
+            isinstance(self.packet, srcrcon.protocol.AuthResponse),
+            '{} != AuthResponse'.format(type(self.packet))
         )
 
     def test_id_set(self):
         self.assertEquals(25, self.packet.id)
 
-class ServerDataResponseValueCreationTests(unittest.TestCase):
+class ResponseValueCreationTests(unittest.TestCase):
 
     @mock.patch('random.randint')
     def setUp(self, _randint):
@@ -80,21 +80,21 @@ class ServerDataResponseValueCreationTests(unittest.TestCase):
 
         self.body = b'i did stuff'
         payload = struct.pack(
-            srcrcon.packet.Packet._pack_format.format(body_len=len(self.body)),
+            srcrcon.protocol.Packet._pack_format.format(body_len=len(self.body)),
             struct.calcsize(
-                srcrcon.packet.Packet._pack_format.format(body_len=len(self.body))
+                srcrcon.protocol.Packet._pack_format.format(body_len=len(self.body))
             ) - 4,
             25, # id
-            srcrcon.packet.ServerDataResponseValue.type,
+            srcrcon.protocol.ResponseValue.type,
             self.body
         )
         # strip off `size`
-        self.packet = srcrcon.packet.Packet(raw=payload[4:])
+        self.packet = srcrcon.protocol.Packet(raw=payload[4:])
 
     def test_correct_type(self):
         self.assertTrue(
-            isinstance(self.packet, srcrcon.packet.ServerDataResponseValue),
-            '{} != ServerDataResponseValue'.format(type(self.packet))
+            isinstance(self.packet, srcrcon.protocol.ResponseValue),
+            '{} != ResponseValue'.format(type(self.packet))
         )
 
     def test_id_set(self):
