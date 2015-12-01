@@ -23,7 +23,7 @@ class PacketTests(unittest.TestCase):
 
     def test_bytes(self):
         expected = struct.pack(
-            '<iii5sxx', 
+            '<iii5sxx',
             self.packet.size,
             self.packet.id,
             self.packet.type,
@@ -43,3 +43,62 @@ class PacketErrorTests(unittest.TestCase):
             'Missing `type`',
             str(cm.exception)
         )
+
+class ServerDataAuthResponseTests(unittest.TestCase):
+
+    @mock.patch('random.randint')
+    def setUp(self, _randint):
+        p = srcrcon.packet.ServerDataAuth(1234)
+        _randint.return_value = 5
+
+        self.body = bytes(chr(0x00), 'ascii')
+        payload = struct.pack(
+            srcrcon.packet.Packet._pack_format.format(body_len=len(self.body)),
+            struct.calcsize(
+                srcrcon.packet.Packet._pack_format.format(body_len=len(self.body))
+            ) - 4,
+            25, # id
+            srcrcon.packet.ServerDataAuthResponse.type,
+            self.body
+        )
+        self.packet = srcrcon.packet.Packet(raw=payload[4:])
+
+    def test_correct_type(self):
+        self.assertTrue(
+            isinstance(self.packet, srcrcon.packet.ServerDataAuthResponse),
+            '{} != ServerDataAuthResponse'.format(type(self.packet))
+        )
+
+    def test_id_set(self):
+        self.assertEquals(25, self.packet.id)
+
+class ServerDataResponseValueCreationTests(unittest.TestCase):
+
+    @mock.patch('random.randint')
+    def setUp(self, _randint):
+        _randint.return_value = 5
+
+        self.body = b'i did stuff'
+        payload = struct.pack(
+            srcrcon.packet.Packet._pack_format.format(body_len=len(self.body)),
+            struct.calcsize(
+                srcrcon.packet.Packet._pack_format.format(body_len=len(self.body))
+            ) - 4,
+            25, # id
+            srcrcon.packet.ServerDataResponseValue.type,
+            self.body
+        )
+        # strip off `size`
+        self.packet = srcrcon.packet.Packet(raw=payload[4:])
+
+    def test_correct_type(self):
+        self.assertTrue(
+            isinstance(self.packet, srcrcon.packet.ServerDataResponseValue),
+            '{} != ServerDataResponseValue'.format(type(self.packet))
+        )
+
+    def test_id_set(self):
+        self.assertEquals(25, self.packet.id)
+
+    def test_body_set(self):
+        self.assertEquals(self.body, self.packet.body)
