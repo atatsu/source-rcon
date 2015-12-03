@@ -44,7 +44,29 @@ class PacketErrorTests(unittest.TestCase):
             str(cm.exception)
         )
 
+
+class AuthTests(unittest.TestCase):
+    """Assert that an `Auth` packet packs correctly."""
+
+    @mock.patch('random.randint')
+    def setUp(self, _randint):
+        _randint.return_value = 5
+        self.body = 'mypassword'
+        self.actual = bytes(srcrcon.protocol.Auth(self.body))
+
+    def test_packs_correctly(self):
+        size = struct.calcsize('<ii{}sxx'.format(len(self.body)))
+        expected = struct.pack(
+            '<iii{}sxx'.format(len(self.body)),
+            size,
+            5,
+            srcrcon.protocol.Auth.type,
+            bytes(self.body, 'ascii')
+        )
+        self.assertEquals(expected, self.actual)
+
 class AuthResponseTests(unittest.TestCase):
+    """Assert that an `AuthResponse` packet unpacks correctly."""
 
     @mock.patch('random.randint')
     def setUp(self, _randint):
@@ -72,7 +94,8 @@ class AuthResponseTests(unittest.TestCase):
     def test_id_set(self):
         self.assertEquals(25, self.packet.id)
 
-class ResponseValueCreationTests(unittest.TestCase):
+class ResponseValueTests(unittest.TestCase):
+    """Assert that a `ResponseValue` packet unpacks correctly."""
 
     @mock.patch('random.randint')
     def setUp(self, _randint):

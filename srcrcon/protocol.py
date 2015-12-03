@@ -43,7 +43,9 @@ class PacketMeta(type):
         obj.__init__(*args, **kwargs)
 
         obj.id = id_ or random.randint(1, 1000)
-        obj.body = body or cls.body
+        # if data came in and had a body take that, if not and the subclass has a body
+        # take that, lastly take the base class's body if necessary
+        obj.body = body or obj.body or cls.body
 
         return obj
 
