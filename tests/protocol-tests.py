@@ -32,6 +32,11 @@ class PacketTests(unittest.TestCase):
         actual = bytes(self.packet)
         self.assertEquals(expected, actual)
 
+    def test_readable_representation(self):
+        expected = "Packet(size=15, id=5, type=0, body='herro')"
+        actual = str(self.packet)
+        self.assertEquals(expected, actual)
+
 
 class PacketErrorTests(unittest.TestCase):
 

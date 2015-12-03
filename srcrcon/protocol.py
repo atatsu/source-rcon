@@ -52,6 +52,8 @@ class PacketMeta(type):
 
 class Packet(metaclass=PacketMeta):
     """
+    Base packet. Also used to create instances of the various subclasses from data
+    received from the server.
     """
     _pack_format = '<iii{body_len}sxx'
     id = None
@@ -66,7 +68,16 @@ class Packet(metaclass=PacketMeta):
     def body(self, value: str):
         self._body = value
 
-    def __bytes__(self):
+    def __repr__(self) -> str:
+        return '{name}(size={size:d}, id={id:d}, type={type:d}, body={body!r})'.format(
+            name=self.__class__.__name__,
+            size=len(self),
+            id=self.id,
+            type=self.type,
+            body=self.body
+        )
+
+    def __bytes__(self) -> bytes:
         if self.type is None:
             raise AttributeError('Missing `type`')
         return struct.pack(
@@ -77,7 +88,7 @@ class Packet(metaclass=PacketMeta):
             bytes(self.body, 'ascii'),
         )
 
-    def __len__(self):
+    def __len__(self) -> int:
         return struct.calcsize(
             self._pack_format.format(body_len=len(self.body))
         ) - 4
@@ -89,7 +100,7 @@ class Auth(Packet):
     """
     type = 3
 
-    def __init__(self, password: str):
+    def __init__(self, password: str) -> None:
         self.body = password
 
 
