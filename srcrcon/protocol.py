@@ -56,30 +56,36 @@ class Packet(metaclass=PacketMeta):
     _pack_format = '<iii{body_len}sxx'
     id = None
     type = None
-    body = chr(0x00)
+    _body = chr(0x00)
 
     @property
-    def body_len(self) -> int:
-        return self.body and len(self.body) or 0
+    def body(self) -> str:
+        return self._body
 
-    @property
-    def size(self) -> int:
-        return struct.calcsize(self._pack_format.format(body_len=self.body_len)) - 4
+    @body.setter
+    def body(self, value: str):
+        self._body = value
 
     def __bytes__(self):
         if self.type is None:
             raise AttributeError('Missing `type`')
         return struct.pack(
-            self._pack_format.format(body_len=self.body_len),
-            self.size,
+            self._pack_format.format(body_len=len(self.body)),
+            len(self),
             self.id,
             self.type,
             bytes(self.body, 'ascii'),
         )
 
+    def __len__(self):
+        return struct.calcsize(
+            self._pack_format.format(body_len=len(self.body))
+        ) - 4
+
 
 class Auth(Packet):
     """
+    Used to authenticate the connection with the server.
     """
     type = 3
 
@@ -89,6 +95,8 @@ class Auth(Packet):
 
 class AuthResponse(Packet):
     """
+    Sent in response to an `Auth` packet and contains the connection's current
+    auth status.
     """
     type = 2
 _registry[AuthResponse.type] = AuthResponse
@@ -96,12 +104,14 @@ _registry[AuthResponse.type] = AuthResponse
 
 class ExecCommand(Packet):
     """
+    Used to issue commands to the server.
     """
     type = 2
 
 
 class ResponseValue(Packet):
     """
+    Sent in response to an `ExecCommand` packet.
     """
     type = 0
 _registry[ResponseValue.type] = ResponseValue

@@ -19,12 +19,12 @@ class PacketTests(unittest.TestCase):
 
     def test_size(self):
         # 4 - id, 4 - type, 5 - body, 2 - NULs
-        self.assertEquals(15, self.packet.size)
+        self.assertEquals(15, len(self.packet))
 
     def test_bytes(self):
         expected = struct.pack(
             '<iii5sxx',
-            self.packet.size,
+            len(self.packet),
             self.packet.id,
             self.packet.type,
             bytes(self.packet.body, 'ascii')
