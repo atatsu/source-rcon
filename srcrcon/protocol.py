@@ -45,7 +45,7 @@ class PacketMeta(type):
         obj.id = id_ or random.randint(1, 1000)
         # if data came in and had a body take that, if not and the subclass has a body
         # take that, lastly take the base class's body if necessary
-        obj.body = body or obj.body or cls.body
+        obj.body = body.decode('utf-8') if body is not None else obj.body or cls.body
 
         return obj
 
@@ -58,7 +58,7 @@ class Packet(metaclass=PacketMeta):
     _pack_format = '<iii{body_len}sxx'
     id = None
     type = None
-    _body = chr(0x00)
+    _body = ''
 
     @property
     def body(self) -> str:

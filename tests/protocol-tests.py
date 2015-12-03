@@ -106,7 +106,7 @@ class ResponseValueTests(unittest.TestCase):
     def setUp(self, _randint):
         _randint.return_value = 5
 
-        self.body = b'i did stuff'
+        self.body = 'i did stuff'
         payload = struct.pack(
             srcrcon.protocol.Packet._pack_format.format(body_len=len(self.body)),
             struct.calcsize(
@@ -114,7 +114,7 @@ class ResponseValueTests(unittest.TestCase):
             ) - 4,
             25, # id
             srcrcon.protocol.ResponseValue.type,
-            self.body
+            bytes(self.body, 'ascii')
         )
         # strip off `size`
         self.packet = srcrcon.protocol.Packet(raw=payload[4:])
