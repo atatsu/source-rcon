@@ -6,5 +6,8 @@ unit:
 unit-debug:
 	nosetests --tests tests --verbosity 3 -s
 
+unit-continuous:
+	ASYNC_TEST_TIMEOUT=1 sniffer
+
 purge-pyc:
 	find . -name "*.pyc" -delete;
