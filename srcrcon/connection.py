@@ -2,7 +2,7 @@ import socket
 import struct
 import logging
 LOG = logging.getLogger(__name__)
-from typing import Union, Tuple
+from typing import Union, Tuple, Optional
 
 from tornado import iostream
 
@@ -11,42 +11,45 @@ from srcrcon.protocol import Packet
 
 class Connection:
 
-    host = None
-    port = None
-    socket = None
-    stream = None
-
-    _buffer = b''
-
     def __init__(self) -> None:
-        self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.stream = iostream.IOStream(self.socket)
+        self._buffer = b''
+        self._socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self._stream = iostream.IOStream(self._socket)
 
     async def connect(self, host: str, port: int) -> None:
-        self.host = host
-        self.port = port
+        self._host = host
+        self._port = port
 
-        await self.stream.connect((self.host,  self.port))
-        LOG.info('Successfully connected to (%s, %s)', self.host, self.port)
-        self.stream.set_close_callback(self.on_close)
+        await self._stream.connect((host,  port))
+        LOG.info('Successfully connected to (%s, %s)', host, port)
+        self._stream.set_close_callback(self.on_close)
 
     def disconnect(self) -> None:
-        self.stream.close()
+        """Disconnect from the server."""
+        self._stream.close()
         LOG.info('Disconnected')
 
     async def send(self, packet: Packet) -> None:
-        await self.stream.write(bytes(packet))
+        """Sends a packet."""
+        await self._stream.write(bytes(packet))
         LOG.debug('wrote %s', packet)
 
-    async def read(self) -> Packet:
-        self._buffer += await self.stream.read_bytes(1024, partial=True)
+    async def read(self) -> Optional[Packet]:
+        """Returns a packet if enough data was received."""
+        self._buffer += await self._stream.read_bytes(1024, partial=True)
         packet, self._buffer = self._get_packet(self._buffer)
+        if packet:
+            LOG.debug('read %s', packet)
         return packet
 
     def on_close(self) -> None:
         LOG.info('Connection closed')
 
     def _get_packet(self, data: bytes) -> Union[Tuple[None, bytes], Tuple[Packet, bytes]]:
+        """
+        Reads socket data and if enough data is present will construct a `Packet` instance
+        from it, or else `None`. Either way the remaining buffer data is also returned.
+        """
         if not data or len(data) < 4:
             return (None, data)
 

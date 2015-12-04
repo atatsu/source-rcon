@@ -1,3 +1,4 @@
+import unittest
 import unittest.mock as mock
 
 from tornado import netutil
@@ -5,7 +6,7 @@ from tornado.iostream import IOStream
 from tornado.testing import AsyncTestCase, bind_unused_port, gen_test
 
 from srcrcon.connection import Connection
-from srcrcon.protocol import Auth, AuthResponse
+from srcrcon.protocol import Packet, Auth, AuthResponse
 
 
 class ConnectionMixin:
@@ -30,7 +31,10 @@ class ListenerMixin:
 
 
 class ListenerConnectionMixin(ListenerMixin, ConnectionMixin):
-    pass
+
+    async def make_listener_and_connect(self):
+        self.make_listener()
+        await self.conn.connect('127.0.0.1', self.port)
 
 
 class ConnectionConnectTests(ListenerConnectionMixin, AsyncTestCase):
@@ -53,8 +57,7 @@ class ConnectionSendTests(ListenerConnectionMixin, AsyncTestCase):
 
     @gen_test
     def test_sends_data(self):
-        self.make_listener()
-        yield self.conn.connect('127.0.0.1', self.port)
+        yield self.make_listener_and_connect()
 
         auth = Auth('me')
         yield self.conn.send(auth)
@@ -68,8 +71,7 @@ class ConnectionReadTests(ListenerConnectionMixin, AsyncTestCase):
 
     @gen_test
     def test_reads_data(self):
-        self.make_listener()
-        yield self.conn.connect('127.0.0.1', self.port)
+        yield self.make_listener_and_connect()
 
         auth_response = AuthResponse()
         yield self.listener.write(bytes(auth_response))
