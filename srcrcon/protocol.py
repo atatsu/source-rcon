@@ -45,7 +45,7 @@ class PacketMeta(type):
         obj.id = id_ or random.randint(1, 1000)
         # if data came in and had a body take that, if not and the subclass has a body
         # take that, lastly take the base class's body if necessary
-        obj.body = body.decode('utf-8') if body is not None else obj.body or cls.body
+        obj.body = body.decode('utf-8') if raw is not None else obj.body or cls._body
 
         return obj
 
@@ -92,6 +92,12 @@ class Packet(metaclass=PacketMeta):
         return struct.calcsize(
             self._pack_format.format(body_len=len(self.body))
         ) - 4
+
+    def __eq__(self, other) -> bool:
+        return (isinstance(other, Packet) and
+            self.id == other.id and
+            self.type == other.type and
+            self.body == other.body)
 
 
 class Auth(Packet):
