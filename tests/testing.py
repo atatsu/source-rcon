@@ -1,3 +1,6 @@
+import logging
+LOG = logging.getLogger(__name__)
+
 from tornado import netutil
 from tornado.iostream import IOStream
 from tornado.testing import bind_unused_port
@@ -7,18 +10,21 @@ from srcrcon.connection import Connection
 
 class ListenerMixin:
 
+    socket = None
     listener = None
     port = None
 
     def make_listener(self):
-        self.listener, self.port = bind_unused_port()
-        netutil.add_accept_handler(self.listener, self._on_connected)
+        self.socket, self.port = bind_unused_port()
+        netutil.add_accept_handler(self.socket, self._on_connected)
 
     def _on_connected(self, connection, address):
+        LOG.debug('accepted connection')
         self.listener = IOStream(connection)
 
 
 class ConnectionMixin:
+
     conn = None
 
     def setUp(self):

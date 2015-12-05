@@ -6,7 +6,8 @@ from typing import Union, Tuple, Optional
 
 from tornado import iostream
 
-from .protocol import Packet
+from .protocol import Packet, AuthPacket, AuthResponsePacket
+from .exceptions import AuthenticationFailure
 
 
 class Connection:
@@ -66,3 +67,31 @@ class Connection:
 
         packet = Packet(raw=data[4:size+4])
         return (packet, data[size+4:])
+
+
+async def authenticate(
+    password: str,
+    conn: Connection = None,
+    host: str = None,
+    port: int = None
+) -> Connection:
+    """
+    Authenticates a connection. Connection details can be supplied in place
+    of an actual connection and a new one will be created.
+    """
+    if conn is None:
+        LOG.debug('no connection supplied, creating new one')
+        conn = Connection(host, port)
+        await conn.connect()
+
+    auth = AuthPacket(password)
+    await conn.send(auth)
+    packet = await conn.read()
+
+    if packet and isinstance(packet, AuthResponsePacket) and packet.id == auth.id:
+        # conn._authenticated = True
+        LOG.info('Authentication successful')
+        return conn
+
+    LOG.error('Authentication failed')
+    raise AuthenticationFailure
