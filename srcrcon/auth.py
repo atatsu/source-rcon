@@ -3,7 +3,7 @@ LOG = logging.getLogger(__name__)
 from typing import Optional
 
 from .connection import Connection
-from .protocol import Auth, AuthResponse
+from .protocol import AuthPacket, AuthResponsePacket
 from .exceptions import AuthenticationFailure
 
 
@@ -26,11 +26,11 @@ class Authenticator:
 
         :raises: `AuthenticationFailure`
         """
-        auth = Auth(self._password)
+        auth = AuthPacket(self._password)
         await self._conn.send(auth)
         packet = await self._conn.read()
 
-        if packet and isinstance(packet, AuthResponse) and packet.id == auth.id:
+        if packet and isinstance(packet, AuthResponsePacket) and packet.id == auth.id:
             self._authenticated = True
             LOG.info('Authentication successful')
             return self._conn

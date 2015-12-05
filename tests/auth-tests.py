@@ -5,7 +5,7 @@ from tornado.testing import AsyncTestCase, gen_test
 
 from testing import ListenerConnectionMixin
 
-from srcrcon.protocol import Auth, AuthResponse
+from srcrcon.protocol import AuthPacket, AuthResponsePacket
 from srcrcon.auth import Authenticator
 from srcrcon.exceptions import AuthenticationFailure
 
@@ -30,7 +30,7 @@ class AuthenticatorSuccessTests(ListenerConnectionMixin, AsyncTestCase):
             self._listen_for_auth_request()
         ]
 
-        auth_check = Auth(self.password)
+        auth_check = AuthPacket(self.password)
         self.assertEquals(bytes(auth_check), received_data, 'client sent non-auth request')
         self.assertTrue(authenticator.authenticated, 'not authenticated')
 
@@ -38,7 +38,7 @@ class AuthenticatorSuccessTests(ListenerConnectionMixin, AsyncTestCase):
     def _listen_for_auth_request(self):
         data = yield self.listener.read_bytes(1024, partial=True)
 
-        auth_response = AuthResponse()
+        auth_response = AuthResponsePacket()
         yield self.listener.write(bytes(auth_response))
         return data
 
@@ -65,6 +65,6 @@ class AuthenticatorFailureTests(ListenerConnectionMixin, AsyncTestCase):
     def _listen_for_auth_request(self):
         data = yield self.listener.read_bytes(1024, partial=True)
 
-        auth_response = AuthResponse()
+        auth_response = AuthResponsePacket()
         yield self.listener.write(bytes(auth_response))
         return data

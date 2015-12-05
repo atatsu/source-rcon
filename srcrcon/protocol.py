@@ -100,7 +100,7 @@ class Packet(metaclass=PacketMeta):
             self.body == other.body)
 
 
-class Auth(Packet):
+class AuthPacket(Packet):
     """
     Used to authenticate the connection with the server.
     """
@@ -110,25 +110,25 @@ class Auth(Packet):
         self.body = password
 
 
-class AuthResponse(Packet):
+class AuthResponsePacket(Packet):
     """
-    Sent in response to an `Auth` packet and contains the connection's current
+    Sent in response to an `AuthPacket` packet and contains the connection's current
     auth status.
     """
     type = 2
-_registry[AuthResponse.type] = AuthResponse
+_registry[AuthResponsePacket.type] = AuthResponsePacket
 
 
-class ExecCommand(Packet):
+class ExecCommandPacket(Packet):
     """
     Used to issue commands to the server.
     """
     type = 2
 
 
-class ResponseValue(Packet):
+class ResponseValuePacket(Packet):
     """
     Sent in response to an `ExecCommand` packet.
     """
     type = 0
-_registry[ResponseValue.type] = ResponseValue
+_registry[ResponseValuePacket.type] = ResponseValuePacket

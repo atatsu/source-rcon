@@ -4,7 +4,7 @@ from tornado.testing import AsyncTestCase, gen_test
 
 from testing import ListenerConnectionMixin
 
-from srcrcon.protocol import Auth, AuthResponse
+from srcrcon.protocol import AuthPacket, AuthResponsePacket
 
 
 class ConnectionConnectTests(ListenerConnectionMixin, AsyncTestCase):
@@ -28,7 +28,7 @@ class ConnectionSendTests(ListenerConnectionMixin, AsyncTestCase):
     def test_sends_data(self):
         yield self.make_listener_and_connect()
 
-        auth = Auth('me')
+        auth = AuthPacket('me')
         yield self.conn.send(auth)
         data = yield self.listener.read_bytes(1024, partial=True)
 
@@ -42,7 +42,7 @@ class ConnectionReadTests(ListenerConnectionMixin, AsyncTestCase):
     def test_reads_data(self):
         yield self.make_listener_and_connect()
 
-        auth_response = AuthResponse()
+        auth_response = AuthResponsePacket()
         yield self.listener.write(bytes(auth_response))
         data = yield self.conn.read()
 

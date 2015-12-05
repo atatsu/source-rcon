@@ -2,7 +2,7 @@ import unittest
 import unittest.mock as mock
 import struct
 
-from srcrcon.protocol import Packet, Auth, AuthResponse, ResponseValue
+from srcrcon.protocol import Packet, AuthPacket, AuthResponsePacket, ResponseValuePacket
 
 
 class PacketTests(unittest.TestCase):
@@ -58,14 +58,14 @@ class PacketErrorTests(unittest.TestCase):
         )
 
 
-class AuthTests(unittest.TestCase):
-    """Assert that an `Auth` packet packs correctly."""
+class AuthPacketTests(unittest.TestCase):
+    """Assert that an `AuthPacket` packet packs correctly."""
 
     @mock.patch('random.randint')
     def setUp(self, _randint):
         _randint.return_value = 5
         self.body = 'mypassword'
-        self.actual = bytes(Auth(self.body))
+        self.actual = bytes(AuthPacket(self.body))
 
     def test_packs_correctly(self):
         size = struct.calcsize('<ii{}sxx'.format(len(self.body)))
@@ -73,17 +73,17 @@ class AuthTests(unittest.TestCase):
             '<iii{}sxx'.format(len(self.body)),
             size,
             5,
-            Auth.type,
+            AuthPacket.type,
             bytes(self.body, 'ascii')
         )
         self.assertEquals(expected, self.actual)
 
-class AuthResponseTests(unittest.TestCase):
-    """Assert that an `AuthResponse` packet unpacks correctly."""
+class AuthResponsePacketTests(unittest.TestCase):
+    """Assert that an `AuthResponsePacket` packet unpacks correctly."""
 
     @mock.patch('random.randint')
     def setUp(self, _randint):
-        p = Auth(1234)
+        p = AuthPacket(1234)
         _randint.return_value = 5
 
         self.body = bytes(chr(0x00), 'ascii')
@@ -93,22 +93,22 @@ class AuthResponseTests(unittest.TestCase):
                 Packet._pack_format.format(body_len=len(self.body))
             ) - 4,
             25, # id
-            AuthResponse.type,
+            AuthResponsePacket.type,
             self.body
         )
         self.packet = Packet(raw=payload[4:])
 
     def test_correct_type(self):
         self.assertTrue(
-            isinstance(self.packet, AuthResponse),
-            '{} != AuthResponse'.format(type(self.packet))
+            isinstance(self.packet, AuthResponsePacket),
+            '{} != AuthResponsePacket'.format(type(self.packet))
         )
 
     def test_id_set(self):
         self.assertEquals(25, self.packet.id)
 
-class ResponseValueTests(unittest.TestCase):
-    """Assert that a `ResponseValue` packet unpacks correctly."""
+class ResponseValuePacketTests(unittest.TestCase):
+    """Assert that a `ResponseValuePacket` packet unpacks correctly."""
 
     @mock.patch('random.randint')
     def setUp(self, _randint):
@@ -121,7 +121,7 @@ class ResponseValueTests(unittest.TestCase):
                 Packet._pack_format.format(body_len=len(self.body))
             ) - 4,
             25, # id
-            ResponseValue.type,
+            ResponseValuePacket.type,
             bytes(self.body, 'ascii')
         )
         # strip off `size`
@@ -129,8 +129,8 @@ class ResponseValueTests(unittest.TestCase):
 
     def test_correct_type(self):
         self.assertTrue(
-            isinstance(self.packet, ResponseValue),
-            '{} != ResponseValue'.format(type(self.packet))
+            isinstance(self.packet, ResponseValuePacket),
+            '{} != ResponseValuePacket'.format(type(self.packet))
         )
 
     def test_id_set(self):
