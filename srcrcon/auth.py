@@ -7,7 +7,7 @@ from .protocol import AuthPacket, AuthResponsePacket
 from .exceptions import AuthenticationFailure
 
 
-class Authenticator:
+class Auth:
     """
     Authenticates a `Connection`.
     """

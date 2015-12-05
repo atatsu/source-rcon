@@ -6,14 +6,14 @@ from tornado.testing import AsyncTestCase, gen_test
 from testing import ListenerConnectionMixin
 
 from srcrcon.protocol import AuthPacket, AuthResponsePacket
-from srcrcon.auth import Authenticator
+from srcrcon.auth import Auth
 from srcrcon.exceptions import AuthenticationFailure
 
 
-class AuthenticatorSuccessTests(ListenerConnectionMixin, AsyncTestCase):
+class AuthSuccessTests(ListenerConnectionMixin, AsyncTestCase):
 
     def setUp(self):
-        super(AuthenticatorSuccessTests, self).setUp()
+        super(AuthSuccessTests, self).setUp()
         self.password = 'mypassword'
 
     @mock.patch('random.randint')
@@ -23,7 +23,7 @@ class AuthenticatorSuccessTests(ListenerConnectionMixin, AsyncTestCase):
         _randint.return_value = 5
 
         yield self.make_listener_and_connect()
-        authenticator = Authenticator(self.password, self.conn)
+        authenticator = Auth(self.password, self.conn)
 
         _, received_data = yield [
             authenticator.authenticate(),
@@ -43,17 +43,17 @@ class AuthenticatorSuccessTests(ListenerConnectionMixin, AsyncTestCase):
         return data
 
 
-class AuthenticatorFailureTests(ListenerConnectionMixin, AsyncTestCase):
+class AuthFailureTests(ListenerConnectionMixin, AsyncTestCase):
 
     def setUp(self):
-        super(AuthenticatorFailureTests, self).setUp()
+        super(AuthFailureTests, self).setUp()
         self.password = 'mypassword'
 
     @gen_test
     def test_authentication(self):
         """raise exception if server replies with different id"""
         yield self.make_listener_and_connect()
-        authenticator = Authenticator(self.password, self.conn)
+        authenticator = Auth(self.password, self.conn)
 
         with self.assertRaises(AuthenticationFailure):
             _, received_data = yield [
