@@ -6,22 +6,25 @@ from typing import Union, Tuple, Optional
 
 from tornado import iostream
 
-from srcrcon.protocol import Packet
+from .protocol import Packet
 
 
 class Connection:
 
-    def __init__(self) -> None:
+    @property
+    def open(self) -> bool:
+        return not self._stream.closed()
+
+    def __init__(self, host: str, port: int) -> None:
+        self._host = host
+        self._port = port
         self._buffer = b''
         self._socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self._stream = iostream.IOStream(self._socket)
 
-    async def connect(self, host: str, port: int) -> None:
-        self._host = host
-        self._port = port
-
-        await self._stream.connect((host,  port))
-        LOG.info('Successfully connected to (%s, %s)', host, port)
+    async def connect(self) -> None:
+        await self._stream.connect((self._host, self._port))
+        LOG.info('Successfully connected to (%s, %s)', self._host, self._port)
         self._stream.set_close_callback(self.on_close)
 
     def disconnect(self) -> None:
@@ -36,7 +39,11 @@ class Connection:
 
     async def read(self) -> Optional[Packet]:
         """Returns a packet if enough data was received."""
-        self._buffer += await self._stream.read_bytes(1024, partial=True)
+        buf = await self._stream.read_bytes(1024, partial=True)
+        if not buf:
+            return
+
+        self._buffer += buf
         packet, self._buffer = self._get_packet(self._buffer)
         if packet:
             LOG.debug('read %s', packet)
