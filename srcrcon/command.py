@@ -6,6 +6,7 @@ from colorama import Fore, Back, Style
 
 from .protocol import ExecCommandPacket, ResponseValuePacket
 from .connection import Connection
+from .exceptions import InvalidCommandError, CommandError
 
 _color_mapping = dict(
     fgblack=Fore.BLACK,
@@ -54,8 +55,8 @@ fancy._initialized = False
 
 class Command:
 
-    success = None
-    failure = None
+    success = fancy('{command!r} succeeded.', fg='green')
+    failure = fancy('{command!r} failed!', fg='red')
     command = None
 
     def __init__(
@@ -67,7 +68,12 @@ class Command:
         self.success = success or self.success
         self.failure = failure or self.failure
         self.command = command or self.command
-        # TODO: assert `command` set
+
+        if not self.command:
+            raise InvalidCommandError('Expected a command string')
+
+        self.success = self.success.format(command=self.command)
+        self.failure = self.failure.format(command=self.command)
 
     def __str__(self) -> str:
         return str(self.command)
@@ -91,9 +97,8 @@ async def execute(cmd: Command, conn: Connection) -> str:
         ):
         LOG.warning('Command %r failed', cmd)
         print(cmd.failure)
-        return False
+        raise CommandError
 
     LOG.info('Command %r successful', cmd)
     LOG.debug(response.body)
     print(cmd.success)
-    return True

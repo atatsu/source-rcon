@@ -11,12 +11,14 @@ from testing import ListenerConnectionMixin
 
 from srcrcon.protocol import ExecCommandPacket, ResponseValuePacket
 from srcrcon.command import fancy, execute, Command
+from srcrcon.exceptions import InvalidCommandError, CommandError
 
 
 class FancyTests(TestCase):
 
     @mock.patch('colorama.init')
     def setUp(self, _init):
+        fancy._initialized = False
         self._init = _init
         self.colorized = fancy('color at me, bro', 'yellow', 'red', 'bright')
         self.defaults = fancy('nothing special', 'badfg', 'badbg', 'badstyle')
@@ -33,6 +35,25 @@ class FancyTests(TestCase):
     def test_sane_fallbacks(self):
         expected = 'nothing special{}'.format(Style.RESET_ALL)
         self.assertEquals(expected, self.defaults)
+
+
+class CommandTests(TestCase):
+
+    def setUp(self):
+        self.cmd = Command('do stuff')
+
+    def test_nice_default_success(self):
+        expected = fancy('{!r} succeeded.'.format('do stuff'), fg='green')
+        self.assertEquals(expected, self.cmd.success)
+
+    def test_nice_default_failure(self):
+        expected = fancy('{!r} failed!'.format('do stuff'), fg='red')
+        self.assertEquals(expected, self.cmd.failure)
+
+    def test_error_no_command(self):
+        with self.assertRaises(InvalidCommandError) as cm:
+            cmd = Command()
+        self.assertEquals('Expected a command string', str(cm.exception))
 
 
 class ExecTestsMixin:
@@ -74,11 +95,6 @@ class ExecSuccessTests(ListenerConnectionMixin, AsyncTestCase, ExecTestsMixin):
         _, listened_data = yield self._do_everything()
         self.assertEquals(bytes(expected), listened_data)
 
-    @gen_test
-    def test_notifies_success(self):
-        exec_result, _ = yield self._do_everything()
-        self.assertTrue(exec_result, "`execute` didn't return `True`")
-
     @mock.patch('builtins.print')
     @gen_test
     def test_should_print_success_msg(self, _print):
@@ -104,11 +120,12 @@ class ExecFailureTests(ListenerConnectionMixin, AsyncTestCase, ExecTestsMixin):
 
     @gen_test
     def test_notifies_failure(self):
-        exec_result, _ = yield self._do_everything()
-        self.assertFalse(exec_result, "`execute` didn't return `False`")
+        with self.assertRaises(CommandError):
+            yield self._do_everything()
 
     @mock.patch('builtins.print')
     @gen_test
     def test_prints_failure_msg(self, _print):
-        yield self._do_everything()
+        with self.assertRaises(CommandError):
+            yield self._do_everything()
         _print.assert_called_once_with(self.cmd.failure)
