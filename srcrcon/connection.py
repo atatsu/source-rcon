@@ -4,10 +4,10 @@ import logging
 LOG = logging.getLogger(__name__)
 from typing import Union, Tuple, Optional
 
-from tornado import iostream
+from tornado.iostream import IOStream, StreamClosedError
 
 from .protocol import Packet, AuthPacket, AuthResponsePacket
-from .exceptions import AuthenticationError
+from .exceptions import AuthenticationError, ConnectionError
 
 
 class Connection:
@@ -21,10 +21,14 @@ class Connection:
         self._port = port
         self._buffer = b''
         self._socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self._stream = iostream.IOStream(self._socket)
+        self._stream = IOStream(self._socket)
 
     async def connect(self) -> None:
-        await self._stream.connect((self._host, self._port))
+        try:
+            await self._stream.connect((self._host, self._port))
+        except StreamClosedError:
+            raise ConnectionError(self._host, self._port)
+
         LOG.info('Successfully connected to (%s, %s)', self._host, self._port)
         self._stream.set_close_callback(self.on_close)
 
@@ -95,5 +99,5 @@ async def authenticate(
         LOG.info('Authentication successful')
         return conn
 
-    LOG.error('Authentication failed')
+    LOG.warning('Authentication failed')
     raise AuthenticationError

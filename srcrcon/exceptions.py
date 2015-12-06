@@ -4,6 +4,18 @@ class SrcRconError(Exception):
     """
 
 
+class ConnectionError(SrcRconError):
+    """
+    Raised when a connection attempt fails.
+    """
+    def __init__(self, host: str, port: int) -> None:
+        self.host = host
+        self.port = port
+
+    def __str__(self) -> None:
+        return repr((self.host, self.port))
+
+
 class AuthenticationError(SrcRconError):
     """
     Raised when an authentication attempt fails.

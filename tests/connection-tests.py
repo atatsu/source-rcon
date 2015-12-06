@@ -9,7 +9,7 @@ from testing import ListenerConnectionMixin
 
 from srcrcon.protocol import AuthPacket, AuthResponsePacket
 from srcrcon.connection import authenticate, Connection
-from srcrcon.exceptions import AuthenticationError
+from srcrcon.exceptions import AuthenticationError, ConnectionError
 
 
 class ConnectionConnectTests(ListenerConnectionMixin, AsyncTestCase):
@@ -24,6 +24,13 @@ class ConnectionConnectTests(ListenerConnectionMixin, AsyncTestCase):
 
     def _on_connected(self, connection, address):
         self.connected = True
+
+    @gen_test
+    def test_connect_error_raises(self):
+        conn = Connection('127.0.0.1', self.port + 1)
+        with self.assertRaises(ConnectionError) as cm:
+            yield conn.connect()
+        self.assertEquals("('127.0.0.1', {:d})".format(self.port + 1), str(cm.exception))
 
 
 class ConnectionSendTests(ListenerConnectionMixin, AsyncTestCase):
