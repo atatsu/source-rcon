@@ -57,16 +57,19 @@ class Command:
 
     success = fancy('{command!r} succeeded.', fg='green')
     failure = fancy('{command!r} failed!', fg='red')
+    response = fancy('{response}', fg='yellow')
     command = None
 
     def __init__(
         self,
         command: str = None,
         success: str = None,
-        failure: str = None
+        failure: str = None,
+        response: str = None
     ) -> None:
         self.success = success or self.success
         self.failure = failure or self.failure
+        self.response = response or self.response
         self.command = command or self.command
 
         if not self.command:
@@ -100,5 +103,6 @@ async def execute(cmd: Command, conn: Connection) -> str:
         raise CommandError
 
     LOG.info('Command %r successful', cmd)
-    LOG.debug(response.body)
+    LOG.debug('server response: %s', response.body)
     print(cmd.success)
+    print(cmd.response.format(response=response.body))
