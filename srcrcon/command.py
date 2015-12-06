@@ -23,13 +23,16 @@ class Command:
         # TODO: assert `command` set
 
     def __str__(self) -> str:
-        return self.command
+        return str(self.command)
+
+    def __repr__(self) -> str:
+        return repr(self.command)
 
 
 async def execute(cmd: Command, conn: Connection) -> str:
     # TODO: assert connection active
     # TODO: assert connection authenticated
-    LOG.info('Executing command: %s', cmd)
+    LOG.info('Executing command: %r', cmd)
     request = ExecCommandPacket(str(cmd))
     await conn.send(request)
 
@@ -39,8 +42,11 @@ async def execute(cmd: Command, conn: Connection) -> str:
             or not isinstance(response, ResponseValuePacket)
             or response.id != request.id
         ):
-        raise NotImplementedError
+        LOG.warning('Command %r failed', cmd)
+        print(cmd.failure)
+        return False
 
     LOG.info('Command %r successful', cmd)
+    LOG.debug(response.body)
     print(cmd.success)
     return True
