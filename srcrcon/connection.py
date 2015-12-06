@@ -7,7 +7,7 @@ from typing import Union, Tuple, Optional
 from tornado import iostream
 
 from .protocol import Packet, AuthPacket, AuthResponsePacket
-from .exceptions import AuthenticationFailure
+from .exceptions import AuthenticationError
 
 
 class Connection:
@@ -96,4 +96,4 @@ async def authenticate(
         return conn
 
     LOG.error('Authentication failed')
-    raise AuthenticationFailure
+    raise AuthenticationError

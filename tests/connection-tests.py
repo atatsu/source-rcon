@@ -9,7 +9,7 @@ from testing import ListenerConnectionMixin
 
 from srcrcon.protocol import AuthPacket, AuthResponsePacket
 from srcrcon.connection import authenticate, Connection
-from srcrcon.exceptions import AuthenticationFailure
+from srcrcon.exceptions import AuthenticationError
 
 
 class ConnectionConnectTests(ListenerConnectionMixin, AsyncTestCase):
@@ -117,7 +117,7 @@ class AuthenticateFailureTests(ListenerConnectionMixin, AsyncTestCase):
         """raise exception if server replies with different id"""
         yield self.make_listener_and_connect()
 
-        with self.assertRaises(AuthenticationFailure):
+        with self.assertRaises(AuthenticationError):
             _, received_data = yield [
                 authenticate(self.password, self.conn),
                 self._listen_for_auth_request()
