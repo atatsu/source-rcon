@@ -52,6 +52,7 @@ class Connection:
 
     def on_close(self) -> None:
         LOG.info('Connection closed')
+        # TODO: handle server-side disconnect
 
     def _get_packet(self, data: bytes) -> Union[Tuple[None, bytes], Tuple[Packet, bytes]]:
         """
@@ -79,6 +80,7 @@ async def authenticate(
     Authenticates a connection. Connection details can be supplied in place
     of an actual connection and a new one will be created.
     """
+    # TODO: assert connection active
     if conn is None:
         LOG.debug('no connection supplied, creating new one')
         conn = Connection(host, port)

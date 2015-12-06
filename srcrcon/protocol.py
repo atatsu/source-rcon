@@ -125,6 +125,9 @@ class ExecCommandPacket(Packet):
     """
     type = 2
 
+    def __init__(self, command: str) -> None:
+        self.body = command
+
 
 class ResponseValuePacket(Packet):
     """

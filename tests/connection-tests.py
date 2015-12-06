@@ -87,14 +87,12 @@ class AuthenticateSuccessTests(ListenerConnectionMixin, AsyncTestCase):
 
         auth_action = authenticate(self.password, host='127.0.0.1', port=self.port)
         listen_action = self._listen_for_auth_request()
-        try:
-            conn, received_data = yield [auth_action, listen_action]
 
-            auth_check = AuthPacket(self.password)
-            self.assertEquals(bytes(auth_check), received_data, 'client sent non-auth request')
-            self.assertTrue(isinstance(conn, Connection))
-        except TimeoutError:
-            print(listen_action.result())
+        conn, received_data = yield [auth_action, listen_action]
+
+        auth_check = AuthPacket(self.password)
+        self.assertEquals(bytes(auth_check), received_data, 'client sent non-auth request')
+        self.assertTrue(isinstance(conn, Connection))
 
     @coroutine
     def _listen_for_auth_request(self):
