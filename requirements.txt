@@ -1,4 +1,6 @@
 tornado
+colorama
+
 nose
 sniffer
 pyinotify
