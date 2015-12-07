@@ -100,6 +100,7 @@ async def execute(cmd: Command, conn: Connection) -> str:
         ):
         LOG.warning('Command %r failed', cmd)
         print(cmd.failure)
+        # TODO: catch this somewhere and fancy print it like command successes get printed
         raise CommandError
 
     LOG.info('Command %r successful', cmd)

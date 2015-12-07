@@ -31,3 +31,10 @@ parser.add_argument(
     help=('Password to authenticate with. Be mindful of using this flag as '
           "anyone with access to the system's process list will see the password.")
 )
+
+parser.add_argument(
+    '--logging',
+    choices=('debug', 'info', 'warn', 'error'),
+    dest='loglevel',
+    help='Enable logging output.'
+)

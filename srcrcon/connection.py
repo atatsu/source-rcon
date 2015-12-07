@@ -27,6 +27,7 @@ class Connection:
         try:
             await self._stream.connect((self._host, self._port))
         except StreamClosedError:
+            # TODO: catch this somewhere and fancy print it
             raise ConnectionError(self._host, self._port)
 
         LOG.info('Successfully connected to (%s, %s)', self._host, self._port)
@@ -100,4 +101,5 @@ async def authenticate(
         return conn
 
     LOG.warning('Authentication failed')
+    # TODO: catch this somewhere and fancy print it
     raise AuthenticationError
