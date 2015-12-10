@@ -55,6 +55,10 @@ fancy._initialized = False
 
 class Command:
 
+    name = None
+    help = None
+    args = []
+
     success = fancy('{command!r} succeeded.', fg='green')
     failure = fancy('{command!r} failed!', fg='red')
     response = fancy('{response}', fg='yellow')
@@ -77,6 +81,9 @@ class Command:
 
         self.success = self.success.format(command=self.command)
         self.failure = self.failure.format(command=self.command)
+
+    def get_command_text(self, args) -> str:
+        raise NotImplementedError
 
     def __str__(self) -> str:
         return str(self.command)
