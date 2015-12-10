@@ -8,7 +8,7 @@ parser = argparse.ArgumentParser(
                  'cotinued command input.')
 )
 parser.add_argument(
-    'host',
+    '--host',
     help='Host of server to connect to.'
 )
 parser.add_argument(
@@ -18,20 +18,11 @@ parser.add_argument(
     help='Port of server to connect to. (default: %(default)s)'
 )
 parser.add_argument(
-    '-c',
-    '--command',
-    dest='command',
-    help='Command to send via RCON protocol. %(prog)s will exit once command completes.'
-)
-
-parser.add_argument(
-    '-p',
     '--password',
     dest='password',
     help=('Password to authenticate with. Be mindful of using this flag as '
           "anyone with access to the system's process list will see the password.")
 )
-
 parser.add_argument(
     '--logging',
     choices=('debug', 'info', 'warn', 'error'),
