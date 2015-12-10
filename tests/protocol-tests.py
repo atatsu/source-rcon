@@ -78,6 +78,13 @@ class AuthPacketTests(unittest.TestCase):
         )
         self.assertEquals(expected, self.actual)
 
+    def test_hides_password(self):
+        passwd = 'mysupersecretpassword'
+        packet = AuthPacket(passwd)
+        actual = repr(packet)
+        self.assertNotIn(passwd, actual)
+        self.assertIn('*' * len(passwd), actual)
+
 class AuthResponsePacketTests(unittest.TestCase):
     """Assert that an `AuthResponsePacket` packet unpacks correctly."""
 

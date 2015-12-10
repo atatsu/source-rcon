@@ -109,6 +109,11 @@ class AuthPacket(Packet):
     def __init__(self, password: str) -> None:
         self.body = password
 
+    def __repr__(self) -> str:
+        unmasked = super(AuthPacket, self).__repr__()
+        masked = unmasked.replace(self.body, '*' * len(self.body))
+        return masked
+
 
 class AuthResponsePacket(Packet):
     """
