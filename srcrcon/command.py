@@ -2,9 +2,7 @@ import logging
 LOG = logging.getLogger(__name__)
 
 from .utils import fancy
-from .protocol import ExecCommandPacket, ResponseValuePacket
-from .connection import Connection
-from .exceptions import InvalidCommandError, CommandError
+from .exceptions import InvalidCommandError
 
 
 class Command:
@@ -45,27 +43,3 @@ class Command:
 
     def __repr__(self) -> str:
         return repr(self.command)
-
-
-async def execute(cmd: Command, conn: Connection) -> str:
-    # TODO: assert connection active
-    # TODO: assert connection authenticated
-    LOG.info('Executing command: %r', cmd)
-    request = ExecCommandPacket(str(cmd))
-    await conn.send(request)
-
-    response = await conn.read()
-
-    if (not response
-            or not isinstance(response, ResponseValuePacket)
-            or response.id != request.id
-        ):
-        LOG.warning('Command %r failed', cmd)
-        print(cmd.failure)
-        # TODO: catch this somewhere and fancy print it like command successes get printed
-        raise CommandError
-
-    LOG.info('Command %r successful', cmd)
-    LOG.debug('server response: %s', response.body)
-    print(cmd.success)
-    print(cmd.response.format(response=response.body))

@@ -6,8 +6,13 @@ from typing import Union, Tuple, Optional
 
 from tornado.iostream import IOStream, StreamClosedError
 
-from .protocol import Packet, AuthPacket, AuthResponsePacket
-from .exceptions import AuthenticationError, ConnectionError
+from .command import Command
+from .protocol import (Packet,
+                       AuthPacket,
+                       AuthResponsePacket,
+                       ExecCommandPacket,
+                       ResponseValuePacket)
+from .exceptions import AuthenticationError, ConnectionError, CommandError
 
 
 class Connection:
@@ -103,3 +108,27 @@ async def authenticate(
     LOG.warning('Authentication failed')
     # TODO: catch this somewhere and fancy print it
     raise AuthenticationError
+
+
+async def execute(cmd: Command, conn: Connection) -> None:
+    # TODO: assert connection active
+    # TODO: assert connection authenticated
+    LOG.info('Executing command: %r', cmd)
+    request = ExecCommandPacket(str(cmd))
+    await conn.send(request)
+
+    response = await conn.read()
+
+    if (not response
+            or not isinstance(response, ResponseValuePacket)
+            or response.id != request.id
+        ):
+        LOG.warning('Command %r failed', cmd)
+        print(cmd.failure)
+        # TODO: catch this somewhere and fancy print it like command successes get printed
+        raise CommandError
+
+    LOG.info('Command %r successful', cmd)
+    LOG.debug('server response: %s', response.body)
+    print(cmd.success)
+    print(cmd.response.format(response=response.body))
