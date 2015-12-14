@@ -1,5 +1,6 @@
 import unittest.mock as mock
 from unittest import skip
+from argparse import Namespace
 
 from tornado.gen import coroutine, sleep
 from tornado.testing import AsyncTestCase, gen_test
@@ -13,6 +14,15 @@ from srcrcon.protocol import (AuthPacket,
                               ResponseValuePacket)
 from srcrcon.connection import authenticate, Connection, execute
 from srcrcon.exceptions import AuthenticationError, ConnectionError, CommandError
+
+
+class ConnTestCommand(Command):
+    command_fmt = 'do stuff'
+    success_fmt = 'you did it!'
+    failure_fmt = 'ohnoes!'
+    response_fmt = '{response}'
+
+    def validate(self, reponse): pass
 
 
 class ConnectionConnectTests(ListenerConnectionMixin, AsyncTestCase):
@@ -174,7 +184,7 @@ class ExecSuccessTests(ListenerConnectionMixin, AsyncTestCase, ExecTestsMixin):
 
     def setUp(self):
         super(ExecSuccessTests, self).setUp()
-        self.cmd = Command('do stuff', 'you did it!')
+        self.cmd = ConnTestCommand(Namespace())
 
     @gen_test
     def test_sends_command(self):
@@ -187,13 +197,13 @@ class ExecSuccessTests(ListenerConnectionMixin, AsyncTestCase, ExecTestsMixin):
     @gen_test
     def test_should_print_success_msg(self, _print):
         yield self._do_everything()
-        _print.assert_any_call(self.cmd.success)
+        _print.assert_any_call('you did it!')
 
     @mock.patch('builtins.print')
     @gen_test
     def test_should_print_server_response(self, _print):
         yield self._do_everything()
-        _print.assert_any_call(self.cmd.response.format(response=(self.response_body)))
+        _print.assert_any_call('gg')
 
 
 class ExecFailureTests(ListenerConnectionMixin, AsyncTestCase, ExecTestsMixin):
@@ -202,7 +212,7 @@ class ExecFailureTests(ListenerConnectionMixin, AsyncTestCase, ExecTestsMixin):
 
     def setUp(self):
         super(ExecFailureTests, self).setUp()
-        self.cmd = Command('do stuff', failure='ohnoes!')
+        self.cmd = ConnTestCommand(Namespace())
 
     @skip('not implemented')
     def test_active_conn_only(self):
@@ -222,4 +232,4 @@ class ExecFailureTests(ListenerConnectionMixin, AsyncTestCase, ExecTestsMixin):
     def test_prints_failure_msg(self, _print):
         with self.assertRaises(CommandError):
             yield self._do_everything()
-        _print.assert_called_once_with(self.cmd.failure)
+        _print.assert_called_once_with('ohnoes!')

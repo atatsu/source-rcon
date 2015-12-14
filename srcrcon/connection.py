@@ -124,11 +124,11 @@ async def execute(cmd: Command, conn: Connection) -> None:
             or response.id != request.id
         ):
         LOG.warning('Command %r failed', cmd)
-        print(cmd.failure)
+        print(cmd.failure())
         # TODO: catch this somewhere and fancy print it like command successes get printed
         raise CommandError
 
     LOG.info('Command %r successful', cmd)
     LOG.debug('server response: %s', response.body)
-    print(cmd.success)
-    print(cmd.response.format(response=response.body))
+    print(cmd.success())
+    print(cmd.response(response.body))
