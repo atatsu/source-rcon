@@ -6,6 +6,7 @@ LOG = logging.getLogger(__name__)
 from .utils import fancy
 
 
+# TODO: add a metaclass that asserts the various attributes of the subclasses are valid
 class Command(metaclass=ABCMeta):
 
     #: Name of the command. This is the value that gets added to

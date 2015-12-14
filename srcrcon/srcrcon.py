@@ -1,10 +1,13 @@
 import sys
 import logging
+from asyncio import coroutine
 from functools import partial
 from argparse import Namespace
 from typing import Sequence
 import logging
 LOG = logging.getLogger(__name__)
+
+from tornado.ioloop import IOLoop
 
 from srcrcon.connection import authenticate, execute
 from srcrcon.command import Command
@@ -62,9 +65,9 @@ class SrcRCON:
                 subcommand.add_argument(arg['name'], help=arg.get('help'))
             subcommand.set_defaults(func=partial(self._invoke_command, command_cls))
 
-    async def start(self, *args: Sequence[str]) -> None:
+    async def init(self, *args: Sequence[str]) -> None:
         """
-        Starts `SrcRCON`. This involves parsing any cli args that were passed
+        Initializes `SrcRCON`. This involves parsing any cli args that were passed
         and determining in which mode to run.
         """
         # TODO: read config
@@ -79,7 +82,10 @@ class SrcRCON:
             parsed_args = self._parser.parse_args()
 
         if parsed_args.loglevel:
-            logging.basicConfig(level=getattr(logging, args.loglevel.upper()))
+            logging.basicConfig(level=getattr(logging, parsed_args.loglevel.upper()))
 
         func = parsed_args.func
         await func(parsed_args)
+
+    def start(self) -> None:
+        IOLoop.current().run_sync(self.init)

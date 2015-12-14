@@ -127,7 +127,7 @@ class SrcRCONSingleParseTests(AsyncTestCase):
             player_name='Bobby',
             message='do the thing!',
         )
-        self.coro = self.app.start(*self.args)
+        self.coro = self.app.init(*self.args)
 
     @mock.patch('srcrcon.srcrcon.execute', new_callable=MockExecute)
     @mock.patch('srcrcon.srcrcon.authenticate', new_callable=MockAuthenticate)
