@@ -1,5 +1,4 @@
 import sys
-import logging
 from asyncio import coroutine
 from functools import partial
 from argparse import Namespace
@@ -82,8 +81,9 @@ class SrcRCON:
             parsed_args = self._parser.parse_args()
 
         if parsed_args.loglevel:
-            logging.basicConfig(level=getattr(logging, parsed_args.loglevel.upper()))
+            logging.getLogger().setLevel(getattr(logging, parsed_args.loglevel.upper()))
 
+        # FIXME: print help if `func` not present
         func = parsed_args.func
         await func(parsed_args)
 
