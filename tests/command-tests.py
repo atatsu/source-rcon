@@ -27,6 +27,11 @@ class CommandTests(TestCase):
         actual = str(self.cmd)
         self.assertEquals(expected, actual)
 
+    def test_repr(self):
+        expected = '"SayToPlayer \'Eggsy\' do stuff"'
+        actual = repr(self.cmd)
+        self.assertEquals(expected, actual)
+
     def test_success(self):
         expected = fancy(
             '{!r} succeeded.'.format("SayToPlayer 'Eggsy' do stuff"),
@@ -44,3 +49,9 @@ class CommandTests(TestCase):
     def test_server_response(self):
         expected = fancy('I did stuff', fg='yellow')
         self.assertEquals(expected, self.cmd.response('I did stuff'))
+
+    def test_eq(self):
+        self.assertEquals(TestCommand(Namespace()), TestCommand(Namespace()))
+
+    def test_ne(self):
+        self.assertNotEquals(TestCommand(Namespace()), TestCommand(Namespace(one='two')))
