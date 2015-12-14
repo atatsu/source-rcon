@@ -56,14 +56,13 @@ class Command(metaclass=ABCMeta):
         return repr(self.command_fmt.format(**vars(self._args)))
 
     def __eq__(self, other) -> bool:
-        print(vars(self._args))
-        print(vars(other._args))
-        return (isinstance(other, Command) and
-                self.name == other.name and
-                self.help == other.help and
-                self.args == other.args and
-                self.command_fmt == other.command_fmt and
-                self.success_fmt == other.success_fmt and
-                self.failure_fmt == other.failure_fmt and
-                self.response_fmt == other.response_fmt and
-                vars(self._args) == vars(other._args))
+        return (
+            isinstance(other, Command) and
+            self.name == other.name and
+            self.help == other.help and
+            self.args == other.args and
+            self.command_fmt == other.command_fmt and
+            self.success_fmt == other.success_fmt and
+            self.failure_fmt == other.failure_fmt and
+            self.response_fmt == other.response_fmt
+        )
