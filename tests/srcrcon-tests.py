@@ -2,6 +2,7 @@ from unittest import TestCase
 import unittest.mock as mock
 from argparse import ArgumentParser, Namespace
 from asyncio import coroutine
+from collections import OrderedDict
 
 from tornado.concurrent import Future
 from tornado.testing import AsyncTestCase, gen_test
@@ -33,7 +34,7 @@ class TestCommand2(Command):
         return True
 
 
-class SrcRCONTests(TestCase):
+class SrcRCONParserSetupTests(TestCase):
 
     @mock.patch('srcrcon.srcrcon.new_parser', spec=ArgumentParser)
     def setUp(self, _new_parser):
@@ -147,4 +148,60 @@ class SrcRCONSingleParseTests(AsyncTestCase):
         _execute.assert_called_once_with(
             TestCommand2(self.parsed_args),
             self._conn
+        )
+
+
+class MockFunc(mock.MagicMock):
+    async def __call__(self, *args, **kwargs):
+        return super().__call__(*args, **kwargs)
+
+
+class SrcRCONConfigTests(AsyncTestCase):
+
+    @mock.patch('srcrcon.srcrcon.new_parser')
+    def setUp(self, _new_parser):
+        super().setUp()
+
+        config_patcher = mock.patch('srcrcon.srcrcon.ConfigParser', autospec=True)
+        self._configparser = config_patcher.start()
+        self._configparser.return_value = self._configparser
+        self.configFile = dict(mysection=OrderedDict(
+            [('host', 'localhost'), ('port', '5555'), ('password', 'mypass')]
+        ))
+        self._configparser.__getitem__.side_effect = lambda x: self.configFile[x]
+
+        self._argparser = mock.Mock(spec=ArgumentParser)
+        _new_parser.return_value = self._argparser
+
+        self.app = SrcRCON()
+        self.app.register_commands(*[TestCommand1, TestCommand2])
+        self.args = [
+            '-c', '~/.source-rcon.cfg',
+            'listplayers',
+        ]
+        self._func = MockFunc()
+        self.parsed_args = Namespace(
+            config='~/.source-rcon.cfg=mysection',
+            loglevel=None,
+            func=self._func
+        )
+
+        self._argparser.parse_args.return_value = self.parsed_args
+
+        self.coro = self.app.init(*self.args)
+
+        self.addCleanup(mock.patch.stopall)
+
+    @gen_test
+    def test_file_read(self):
+        yield self.coro
+        self._configparser.read.assert_called_once_with('~/.source-rcon.cfg')
+
+    @gen_test
+    def test_args_updated(self):
+        yield self.coro
+        print(self._argparser.parse_args.call_args_list)
+        self._argparser.parse_args.assert_any_call(
+            ['--host', 'localhost', '--port', '5555', '--password', 'mypass'],
+            namespace=self.parsed_args
         )

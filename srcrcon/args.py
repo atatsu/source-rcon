@@ -31,4 +31,11 @@ def new_parser():
         help='Enable logging output.'
     )
 
+    parser.add_argument(
+        '-c',
+        '--config',
+        dest='config',
+        help='Config file to read options from.'
+    )
+
     return parser

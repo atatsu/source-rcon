@@ -2,6 +2,7 @@ import sys
 from asyncio import coroutine
 from functools import partial
 from argparse import Namespace
+from configparser import ConfigParser
 from typing import Sequence
 import logging
 LOG = logging.getLogger(__name__)
@@ -17,7 +18,35 @@ class SrcRCON:
 
     def __init__(self) -> None:
         self._interactive = False
+        self._config = ConfigParser()
         self._parser = new_parser()
+
+    def _read_config(self, parsed_args: Namespace) -> None:
+        # separate the config file name from the section name
+        try:
+            configfile, section = parsed_args.config.split('=')
+        except ValueError:
+            configfile, section = parsed_args.config, None
+
+        self._config.read(configfile)
+
+        allowed = ['host', 'port', 'password']
+        new_args = []
+        # build an args list to send through the parser pulling values
+        # from the config if they exist
+        # TODO: if no `section` specified default to only section
+        # TODO: catch `MissingSectionHeaderError`
+        section_opts = self._config[section]
+        for opt in section_opts:
+            if opt not in allowed:
+                continue
+
+            val = section_opts.get(opt)
+            if val:
+                new_args.extend(['--{}'.format(opt), val])
+
+        self._parser.parse_args(new_args, namespace=parsed_args)
+
 
     async def _invoke_command(self, command_cls: Command, args: Namespace) -> None:
         # TODO: implement interactive
@@ -69,7 +98,6 @@ class SrcRCON:
         Initializes `SrcRCON`. This involves parsing any cli args that were passed
         and determining in which mode to run.
         """
-        # TODO: read config
         if not args and len(sys.argv) < 2:
             # TODO: only do this if no config found!
             self._parser.print_usage()
@@ -82,8 +110,14 @@ class SrcRCON:
 
         if parsed_args.loglevel:
             logging.getLogger().setLevel(getattr(logging, parsed_args.loglevel.upper()))
+        LOG.debug('parsed args: %s', parsed_args)
 
-        # FIXME: print help if `func` not present
+        # check if a config file was specified and if so load it
+        if parsed_args.config:
+            LOG.debug('config specified, attempting to parse %r', parsed_args.config)
+            self._read_config(parsed_args)
+
+        # FIXME: print help if `func` not present or assume interactive mode?
         func = parsed_args.func
         await func(parsed_args)
 
