@@ -4,6 +4,12 @@ class SrcRconError(Exception):
     """
 
 
+class MissingHostError(SrcRconError):
+    """
+    Raised when no host is specified.
+    """
+
+
 class ConnectionError(SrcRconError):
     """
     Raised when a connection attempt fails.

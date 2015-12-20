@@ -10,11 +10,12 @@ from tornado.testing import AsyncTestCase, gen_test
 from testing import FuncToolsPartialMatcher
 from srcrcon.command import Command
 from srcrcon import SrcRCON
+from srcrcon.exceptions import MissingHostError
 
 
 class TestCommand1(Command):
+    """list all players"""
     name = 'listplayers'
-    help = 'list all players'
     command_fmt = 'ListPlayers'
 
     def validate(self, response):
@@ -22,8 +23,8 @@ class TestCommand1(Command):
 
 
 class TestCommand2(Command):
+    """send a message to a player"""
     name = 'saytoplayer'
-    help = 'send a message to a player'
     args = [
         dict(name='player_name', help='name of player'),
         dict(name='message', help='message to send'),
@@ -182,6 +183,7 @@ class SrcRCONConfigTests(AsyncTestCase):
         self._func = MockFunc()
         self.parsed_args = Namespace(
             config='~/.source-rcon.cfg=mysection',
+            host='localhost',
             loglevel=None,
             func=self._func
         )
@@ -200,8 +202,26 @@ class SrcRCONConfigTests(AsyncTestCase):
     @gen_test
     def test_args_updated(self):
         yield self.coro
-        print(self._argparser.parse_args.call_args_list)
         self._argparser.parse_args.assert_any_call(
             ['--host', 'localhost', '--port', '5555', '--password', 'mypass'],
             namespace=self.parsed_args
+        )
+
+
+class SrcRCONInitTests(AsyncTestCase):
+
+    def setUp(self):
+        super().setUp()
+
+        self.app = SrcRCON()
+
+    @gen_test
+    def test_no_host(self):
+        args = ['--port', '5555']
+        with self.assertRaises(MissingHostError) as cm:
+            yield self.app.init(*args)
+        self.assertEquals(
+            str(cm.exception),
+            ('No host specified. Use either the `--host` option or specify a config file '
+             'with the `-c` option')
         )

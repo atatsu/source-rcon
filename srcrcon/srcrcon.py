@@ -12,6 +12,7 @@ from tornado.ioloop import IOLoop
 from srcrcon.connection import authenticate, execute
 from srcrcon.command import Command
 from srcrcon.args import new_parser
+from srcrcon.exceptions import MissingHostError
 
 
 class SrcRCON:
@@ -87,7 +88,7 @@ class SrcRCON:
             # TODO: assert `command_cls` is subclass of Command
             subcommand = subparsers.add_parser(
                 command_cls.name,
-                help=command_cls.help
+                help=command_cls.__doc__ or ''
             )
             for arg in command_cls.args:
                 subcommand.add_argument(arg['name'], help=arg.get('help'))
@@ -116,6 +117,13 @@ class SrcRCON:
         if parsed_args.config:
             LOG.debug('config specified, attempting to parse %r', parsed_args.config)
             self._read_config(parsed_args)
+
+        # verify we have a host and port to connect to
+        if not getattr(parsed_args, 'host', None):
+            raise MissingHostError(
+                'No host specified. Use either the `--host` option or specify a config '
+                'file with the `-c` option'
+            )
 
         # FIXME: print help if `func` not present or assume interactive mode?
         func = parsed_args.func
