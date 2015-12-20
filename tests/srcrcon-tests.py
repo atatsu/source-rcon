@@ -13,18 +13,16 @@ from srcrcon import SrcRCON
 from srcrcon.exceptions import MissingHostError
 
 
-class TestCommand1(Command):
+class ListPlayers(Command):
     """list all players"""
-    name = 'listplayers'
     command_fmt = 'ListPlayers'
 
     def validate(self, response):
         return True
 
 
-class TestCommand2(Command):
+class SayToPlayer(Command):
     """send a message to a player"""
-    name = 'saytoplayer'
     args = [
         dict(name='player_name', help='name of player'),
         dict(name='message', help='message to send'),
@@ -50,7 +48,7 @@ class SrcRCONParserSetupTests(TestCase):
 
         self.app = SrcRCON()
         self.app.register_commands(
-            *[TestCommand1, TestCommand2],
+            *[ListPlayers, SayToPlayer],
             title='mytitle',
             description='mydescription',
             help='myhelp'
@@ -85,8 +83,8 @@ class SrcRCONParserSetupTests(TestCase):
 
     def test_func_set(self):
         calls = [
-            mock.call(func=FuncToolsPartialMatcher(self.app._invoke_command, TestCommand1)),
-            mock.call(func=FuncToolsPartialMatcher(self.app._invoke_command, TestCommand2)),
+            mock.call(func=FuncToolsPartialMatcher(self.app._invoke_command, ListPlayers)),
+            mock.call(func=FuncToolsPartialMatcher(self.app._invoke_command, SayToPlayer)),
         ]
         self._subparser.set_defaults.assert_has_calls(calls)
 
@@ -110,7 +108,7 @@ class SrcRCONSingleParseTests(AsyncTestCase):
 
         self.app = SrcRCON()
         self.app.register_commands(
-            *[TestCommand1, TestCommand2],
+            *[ListPlayers, SayToPlayer],
             title='mytitle',
             description='mydescription',
             help='myhelp'
@@ -147,7 +145,7 @@ class SrcRCONSingleParseTests(AsyncTestCase):
         _authenticate.return_value = self._conn
         yield self.coro
         _execute.assert_called_once_with(
-            TestCommand2(self.parsed_args),
+            SayToPlayer(self.parsed_args),
             self._conn
         )
 
@@ -175,7 +173,7 @@ class SrcRCONConfigTests(AsyncTestCase):
         _new_parser.return_value = self._argparser
 
         self.app = SrcRCON()
-        self.app.register_commands(*[TestCommand1, TestCommand2])
+        self.app.register_commands(*[ListPlayers, SayToPlayer])
         self.args = [
             '-c', '~/.source-rcon.cfg',
             'listplayers',

@@ -84,10 +84,9 @@ class SrcRCON:
         )
 
         for command_cls in commands:
-            # TODO: assert `name`
             # TODO: assert `command_cls` is subclass of Command
             subcommand = subparsers.add_parser(
-                command_cls.name,
+                command_cls.__name__.lower(),
                 help=command_cls.__doc__ or ''
             )
             for arg in command_cls.args:
