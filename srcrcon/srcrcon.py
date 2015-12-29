@@ -10,7 +10,7 @@ LOG = logging.getLogger(__name__)
 from tornado.ioloop import IOLoop
 
 from srcrcon.connection import authenticate, execute
-from srcrcon.command import Command
+from srcrcon.command import Command, Argument
 from srcrcon.args import new_parser
 from srcrcon.exceptions import MissingHostError
 
@@ -89,8 +89,13 @@ class SrcRCON:
                 command_cls.__name__.lower(),
                 help=command_cls.__doc__ or ''
             )
-            for arg in command_cls.args:
-                subcommand.add_argument(arg['name'], help=arg.get('help'))
+
+            for arg_attr in command_cls._arguments:
+                subcommand.add_argument(
+                    arg_attr.get_name(),
+                    help=arg_attr.__doc__
+                )
+
             subcommand.set_defaults(func=partial(self._invoke_command, command_cls))
 
     async def init(self, *args: Sequence[str]) -> None:

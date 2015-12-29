@@ -1,8 +1,12 @@
 from unittest import TestCase, skip
 from argparse import Namespace
 
-from srcrcon.command import Command
+from srcrcon.command import Command, Argument
 from srcrcon.utils import fancy
+
+
+class TestArgument(Argument):
+    pass
 
 
 class TestCommand(Command):
@@ -11,6 +15,15 @@ class TestCommand(Command):
 
     def validate(self, reponse):
         pass
+
+
+class ArgumentTests(TestCase):
+
+    def test_get_name(self):
+        self.assertEquals('test_argument', TestArgument.get_name())
+
+    def test_fmt(self):
+        self.assertEquals('{test_argument}', TestArgument.fmt())
 
 
 class CommandTests(TestCase):

@@ -8,7 +8,7 @@ from tornado.concurrent import Future
 from tornado.testing import AsyncTestCase, gen_test
 
 from testing import FuncToolsPartialMatcher
-from srcrcon.command import Command
+from srcrcon.command import Command, Argument
 from srcrcon import SrcRCON
 from srcrcon.exceptions import MissingHostError
 
@@ -23,11 +23,17 @@ class ListPlayers(Command):
 
 class SayToPlayer(Command):
     """send a message to a player"""
-    args = [
-        dict(name='player_name', help='name of player'),
-        dict(name='message', help='message to send'),
-    ]
-    command_fmt = 'SayToPlayer {player_name} {message}'
+
+    class PlayerName(Argument):
+        """name of player"""
+
+    class Message(Argument):
+        """message to send"""
+
+    command_fmt = 'SayToPlayer {} {}'.format(
+        PlayerName.fmt(),
+        Message.fmt()
+    )
 
     def validate(self, response):
         return True
@@ -80,13 +86,6 @@ class SrcRCONParserSetupTests(TestCase):
             mock.call('message', help='message to send'),
         ]
         self._subparser.add_argument.assert_has_calls(calls)
-
-    def test_func_set(self):
-        calls = [
-            mock.call(func=FuncToolsPartialMatcher(self.app._invoke_command, ListPlayers)),
-            mock.call(func=FuncToolsPartialMatcher(self.app._invoke_command, SayToPlayer)),
-        ]
-        self._subparser.set_defaults.assert_has_calls(calls)
 
 
 class MockAuthenticate(mock.MagicMock):

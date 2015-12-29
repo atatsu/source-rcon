@@ -1,3 +1,5 @@
+import re
+from collections import OrderedDict
 from argparse import Namespace
 from abc import ABCMeta, abstractmethod
 import logging
@@ -6,8 +8,55 @@ LOG = logging.getLogger(__name__)
 from .utils import fancy
 
 
+class Argument:
+
+    re_cls_to_key = re.compile(r'''
+        ^[A-Z]{2,}(?=[A-Z][a-z0-9]|[0-9])
+        |
+        (?<=[a-z0-9])[A-Z]{2,}$
+        |
+        (?<=[a-z0-9])[A-Z]{2,}(?=[A-Z][a-z0-9])
+        |
+        [A-Z][a-z]+
+        |
+        [0-9]+
+        |
+        [a-z]+
+    ''', re.VERBOSE)
+
+    @classmethod
+    def fmt(cls):
+        return '{{{}}}'.format(cls.get_name())
+
+    @classmethod
+    def get_name(cls):
+        parts = cls.re_cls_to_key.findall(cls.__name__)
+        name = '_'.join(map(lambda x: x.lower(), parts))
+        return name
+
+
+class OrderedMeta(type, metaclass=ABCMeta):
+    @classmethod
+    def __prepare__(metacls, name, bases):
+        return OrderedDict()
+
+    def __new__(cls, name, bases, clsdict):
+        c = type.__new__(cls, name, bases, clsdict)
+        c._arguments = []
+        for attr in clsdict:
+            cls_attr = clsdict[attr]
+            try:
+                if issubclass(cls_attr, Argument):
+                    c._arguments.append(cls_attr)
+            except TypeError:
+                # cls_attr wasn't a class
+                continue
+
+        return c
+
+
 # TODO: add a metaclass that asserts the various attributes of the subclasses are valid
-class Command(metaclass=ABCMeta):
+class Command(metaclass=OrderedMeta):
 
     #: Name of the command. This is the value that gets added to
     #: the parser and used as an actual subcommand.
