@@ -128,6 +128,9 @@ async def execute(cmd: Command, conn: Connection) -> None:
         # TODO: catch this somewhere and fancy print it like command successes get printed
         raise CommandError
 
+    if not cmd.validate(response.body):
+        raise CommandError
+
     LOG.info('Command %r successful', cmd)
     LOG.debug('server response: %s', response.body)
     print(cmd.success())

@@ -22,7 +22,15 @@ class ConnTestCommand(Command):
     failure_fmt = 'ohnoes!'
     response_fmt = '{response}'
 
-    def validate(self, reponse): pass
+    def validate(self, reponse):
+        return True
+
+
+class ValidationFailureCommand(Command):
+    command_fmt = 'send my command'
+
+    def validate(self, response):
+        return False
 
 
 class ConnectionConnectTests(ListenerConnectionMixin, AsyncTestCase):
@@ -76,7 +84,7 @@ class ConnectionReadTests(ListenerConnectionMixin, AsyncTestCase):
 class AuthenticateSuccessTests(ListenerConnectionMixin, AsyncTestCase):
 
     def setUp(self):
-        super(AuthenticateSuccessTests, self).setUp()
+        super().setUp()
         self.password = 'mypassword'
 
 
@@ -129,7 +137,7 @@ class AuthenticateSuccessTests(ListenerConnectionMixin, AsyncTestCase):
 class AuthenticateFailureTests(ListenerConnectionMixin, AsyncTestCase):
 
     def setUp(self):
-        super(AuthenticateFailureTests, self).setUp()
+        super().setUp()
         self.password = 'mypassword'
 
     @gen_test
@@ -183,7 +191,7 @@ class ExecTestsMixin:
 class ExecSuccessTests(ListenerConnectionMixin, AsyncTestCase, ExecTestsMixin):
 
     def setUp(self):
-        super(ExecSuccessTests, self).setUp()
+        super().setUp()
         self.cmd = ConnTestCommand(Namespace())
 
     @gen_test
@@ -208,10 +216,11 @@ class ExecSuccessTests(ListenerConnectionMixin, AsyncTestCase, ExecTestsMixin):
 
 class ExecFailureTests(ListenerConnectionMixin, AsyncTestCase, ExecTestsMixin):
 
+    # all sends will be considered a failure because `response_id` doesn't match `request_id`
     response_id = 6
 
     def setUp(self):
-        super(ExecFailureTests, self).setUp()
+        super().setUp()
         self.cmd = ConnTestCommand(Namespace())
 
     @skip('not implemented')
@@ -233,3 +242,16 @@ class ExecFailureTests(ListenerConnectionMixin, AsyncTestCase, ExecTestsMixin):
         with self.assertRaises(CommandError):
             yield self._do_everything()
         _print.assert_called_once_with('ohnoes!')
+
+
+class ExecValidationFailureTests(ListenerConnectionMixin, AsyncTestCase, ExecTestsMixin):
+    """Tests asserting behavior when command validation fails."""
+
+    def setUp(self):
+        super().setUp()
+        self.cmd = ValidationFailureCommand(Namespace())
+
+    @gen_test
+    def test_notifies_failure(self):
+        with self.assertRaises(CommandError):
+            yield self._do_everything()
