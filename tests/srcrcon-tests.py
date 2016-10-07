@@ -126,7 +126,7 @@ class SrcRCONSingleParseTests(AsyncTestCase):
             player_name='Bobby',
             message='do the thing!',
         )
-        self.coro = self.app.init(*self.args)
+        self.coro = self.app._run(*self.args)
 
     @mock.patch('srcrcon.srcrcon.execute', new_callable=MockExecute)
     @mock.patch('srcrcon.srcrcon.authenticate', new_callable=MockAuthenticate)
@@ -187,7 +187,7 @@ class SrcRCONConfigTests(AsyncTestCase):
 
         self._argparser.parse_args.return_value = self.parsed_args
 
-        self.coro = self.app.init(*self.args)
+        self.coro = self.app._run(*self.args)
 
         self.addCleanup(mock.patch.stopall)
 
@@ -216,7 +216,7 @@ class SrcRCONInitTests(AsyncTestCase):
     def test_no_host(self):
         args = ['--port', '5555']
         with self.assertRaises(MissingHostError) as cm:
-            yield self.app.init(*args)
+            yield self.app._run(*args)
         self.assertEquals(
             str(cm.exception),
             ('No host specified. Use either the `--host` option or specify a config file '

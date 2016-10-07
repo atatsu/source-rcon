@@ -1,0 +1,117 @@
+Python 3.5.0 (default, Sep 20 2015, 11:28:25) 
+[GCC 5.2.0] on linux
+Type "help", "copyright", "credits" or "license" for more information.
+>>> import socket
+>>> from srcrcon  import packet
+>>> p = packet.ServerDataAuth('cadderly')
+>>> p.id
+995
+>>> s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+>>> s.connect(('209.170.149.170', 24552))
+>>> s.send(bytes(p))
+22
+>>> s.recv(1024)
+b'\n\x00\x00\x00\xff\xff\xff\xff\x02\x00\x00\x00\x00\x00'
+>>> s.recv(1024)
+b''
+>>> s.recv(1024)
+b''
+>>> s.close()
+>>> p = packet.ServerDataAuth('cadderly$4$')
+>>> p.id
+368
+>>> s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+>>> s.connect(('209.170.149.170', 24552))
+>>> s.send(bytes(p))
+25
+>>> s.recv(1024)
+b'\n\x00\x00\x00p\x01\x00\x00\x02\x00\x00\x00\x00\x00'
+>>> s.recv(1024)
+b'\x14\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00Keep Alive\x00\x00'
+>>> s.recv(1024)
+b'\x14\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00Keep Alive\x00\x00'
+>>> s.recv(1024)
+b'\x14\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00Keep Alive\x00\x00\x14\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00Keep Alive\x00\x00\x14\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00Keep Alive\x00\x00\x14\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00Keep Alive\x00\x00\x14\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00Keep Alive\x00\x00\x14\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00Keep Alive\x00\x00\x14\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00Keep Alive\x00\x00\x14\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00Keep Alive\x00\x00\x14\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00Keep Alive\x00\x00\x14\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00Keep Alive\x00\x00'
+>>> s.recv(1024)
+b'\x14\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00Keep Alive\x00\x00'
+>>> s.close()
+>>> p = packet.ServerDataAuth('cadderly')
+>>> s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+>>> s.connect(('209.170.149.170', 24552))
+>>> p.id
+794
+>>> s.send(bytes(p))
+22
+>>> s.recv(1024)
+b'\n\x00\x00\x00\xff\xff\xff\xff\x02\x00\x00\x00\x00\x00'
+>>> s.recv(1024)
+b''
+
+
+./source-rcon-ark -c ~/.source-rcon.cfg=ark saveworld                                                               (develop)-+
+Traceback (most recent call last):
+  File "./source-rcon-ark", line 39, in <module>
+    app.start()
+  File "/home/atatsu/dev/source-rcon/srcrcon/srcrcon.py", line 133, in start
+    IOLoop.current().run_sync(self.init)
+  File "/home/atatsu/dev/source-rcon-ark/virtualenv/lib/python3.5/site-packages/tornado/ioloop.py", line 453, in run_sync
+    return future_cell[0].result()
+  File "/home/atatsu/dev/source-rcon-ark/virtualenv/lib/python3.5/site-packages/tornado/concurrent.py", line 232, in result
+    raise_exc_info(self._exc_info)
+  File "<string>", line 3, in raise_exc_info
+  File "/home/atatsu/dev/source-rcon-ark/virtualenv/lib/python3.5/site-packages/tornado/gen.py", line 1014, in run
+    yielded = self.gen.throw(*exc_info)
+  File "<string>", line 6, in _wrap_awaitable
+  File "/home/atatsu/dev/source-rcon/srcrcon/srcrcon.py", line 130, in init
+    await func(parsed_args)
+  File "/home/atatsu/dev/source-rcon/srcrcon/srcrcon.py", line 59, in _invoke_command
+    args.password
+  File "/home/atatsu/dev/source-rcon/srcrcon/srcrcon.py", line 69, in _single_command
+    conn = await authenticate(password, host=host, port=port)
+  File "/home/atatsu/dev/source-rcon/srcrcon/connection.py", line 101, in authenticate
+    packet = await conn.read()
+  File "/home/atatsu/dev/source-rcon/srcrcon/connection.py", line 53, in read
+    buf = await self._stream.read_bytes(1024, partial=True)
+  File "<string>", line 3, in __await__
+  File "/home/atatsu/dev/source-rcon-ark/virtualenv/lib/python3.5/site-packages/tornado/gen.py", line 1008, in run
+    value = future.result()
+  File "/home/atatsu/dev/source-rcon-ark/virtualenv/lib/python3.5/site-packages/tornado/concurrent.py", line 232, in result
+    raise_exc_info(self._exc_info)
+  File "<string>", line 3, in raise_exc_info
+tornado.iostream.StreamClosedError: Stream is closed
+
++-(1:%) ./source-rcon-ark -c ~/.source-rcon.cfg=ark listplayers                                                           (develop)-+
+Traceback (most recent call last):
+  File "./source-rcon-ark", line 45, in <module>
+    app.start()
+  File "/home/atatsu/dev/source-rcon/srcrcon/srcrcon.py", line 132, in start
+    IOLoop.current().run_sync(self.init)
+  File "/home/atatsu/dev/source-rcon-ark/virtualenv/lib/python3.5/site-packages/tornado/ioloop.py", line 453, in run_sync
+    return future_cell[0].result()
+  File "/home/atatsu/dev/source-rcon-ark/virtualenv/lib/python3.5/site-packages/tornado/concurrent.py", line 232, in result
+    raise_exc_info(self._exc_info)
+  File "<string>", line 3, in raise_exc_info
+  File "/home/atatsu/dev/source-rcon-ark/virtualenv/lib/python3.5/site-packages/tornado/gen.py", line 1014, in run
+    yielded = self.gen.throw(*exc_info)
+  File "<string>", line 6, in _wrap_awaitable
+  File "/home/atatsu/dev/source-rcon/srcrcon/srcrcon.py", line 129, in init
+    await func(parsed_args)
+  File "/home/atatsu/dev/source-rcon/srcrcon/srcrcon.py", line 59, in _invoke_command
+    args.password
+  File "/home/atatsu/dev/source-rcon/srcrcon/srcrcon.py", line 69, in _single_command
+    conn = await authenticate(password, host=host, port=port)
+  File "/home/atatsu/dev/source-rcon/srcrcon/connection.py", line 101, in authenticate
+    packet = await conn.read()
+  File "/home/atatsu/dev/source-rcon/srcrcon/connection.py", line 53, in read
+    buf = await self._stream.read_bytes(1024, partial=True)
+  File "<string>", line 3, in __await__
+  File "/home/atatsu/dev/source-rcon-ark/virtualenv/lib/python3.5/site-packages/tornado/gen.py", line 1008, in run
+    value = future.result()
+  File "/home/atatsu/dev/source-rcon-ark/virtualenv/lib/python3.5/site-packages/tornado/concurrent.py", line 232, in result
+    raise_exc_info(self._exc_info)
+  File "<string>", line 3, in raise_exc_info
+tornado.iostream.StreamClosedError: Stream is closed
+
+
+
+# vim: set filetype=python :

@@ -14,13 +14,52 @@ from srcrcon.command import Command, Argument
 from srcrcon.args import new_parser
 from srcrcon.exceptions import MissingHostError
 
+CONSOLE = 1
+INTERACTIVE = 2
+
 
 class SrcRCON:
 
     def __init__(self) -> None:
-        self._interactive = False
+        self._mode = None
         self._config = ConfigParser()
         self._parser = new_parser()
+        self._console_notifier = None
+
+    @property
+    def console_notifier(cls, notifier):
+        self._console_notifier = notifier
+
+    def register_commands(
+        self,
+        *commands: Command,
+        title: str = None,
+        description: str = None,
+        help: str = None
+    ) -> None:
+        subparsers = self._parser.add_subparsers(
+            title=title,
+            description=description,
+            help=help,
+        )
+
+        for command_cls in commands:
+            # TODO: assert `command_cls` is subclass of Command
+            subcommand = subparsers.add_parser(
+                command_cls.__name__.lower(),
+                help=command_cls.__doc__ or ''
+            )
+
+            for arg_attr in command_cls._arguments:
+                subcommand.add_argument(
+                    arg_attr.get_name(),
+                    help=arg_attr.__doc__
+                )
+
+            subcommand.set_defaults(func=partial(self._invoke_command, command_cls))
+
+    def start(self) -> None:
+        IOLoop.current().run_sync(self._run)
 
     def _read_config(self, parsed_args: Namespace) -> None:
         # separate the config file name from the section name
@@ -51,7 +90,7 @@ class SrcRCON:
 
     async def _invoke_command(self, command_cls: Command, args: Namespace) -> None:
         # TODO: implement interactive
-        if not self._interactive:
+        if self._mode == CONSOLE:
             await self._single_command(
                 command_cls(args),
                 args.host,
@@ -70,35 +109,7 @@ class SrcRCON:
         await execute(cmd, conn)
         conn.disconnect()
 
-    def register_commands(
-        self,
-        *commands: Command,
-        title: str = None,
-        description: str = None,
-        help: str = None
-    ) -> None:
-        subparsers = self._parser.add_subparsers(
-            title=title,
-            description=description,
-            help=help,
-        )
-
-        for command_cls in commands:
-            # TODO: assert `command_cls` is subclass of Command
-            subcommand = subparsers.add_parser(
-                command_cls.__name__.lower(),
-                help=command_cls.__doc__ or ''
-            )
-
-            for arg_attr in command_cls._arguments:
-                subcommand.add_argument(
-                    arg_attr.get_name(),
-                    help=arg_attr.__doc__
-                )
-
-            subcommand.set_defaults(func=partial(self._invoke_command, command_cls))
-
-    async def init(self, *args: Sequence[str]) -> None:
+    async def _run(self, *args: Sequence[str]) -> None:
         """
         Initializes `SrcRCON`. This involves parsing any cli args that were passed
         and determining in which mode to run.
@@ -130,8 +141,7 @@ class SrcRCON:
             )
 
         # FIXME: print help if `func` not present or assume interactive mode?
+        self._mode = CONSOLE
         func = parsed_args.func
         await func(parsed_args)
 
-    def start(self) -> None:
-        IOLoop.current().run_sync(self.init)
